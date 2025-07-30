@@ -96,7 +96,7 @@ JWT_SECRET=tu-clave-secreta-jwt-muy-segura-aqui
 - **answers**: Respuestas individuales
 
 ### Diagrama ER
-Puedes visualizar la estructura completa en [dbdiagram.io](https://dbdiagram.io) con el código DBML incluido en la documentación.
+Puedes visualizar la estructura completa en https://dbdiagram.io/d/Sistemas-de-Encuestas-68795890f413ba350870eaa4 con el código DBML incluido en la documentación.
 
 ## 🔒 Sistema Anti-Duplicación
 
