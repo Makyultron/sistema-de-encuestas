@@ -1,0 +1,29 @@
+# Frontend Angular - Archivos a ignorar
+
+# Dependencias
+node_modules/
+
+# Compilación Angular
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Archivos de entorno
+.env
+.env.*
+
+# Angular específico
+.angular/
+.sass-cache/
+
+# Logs
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Archivos temporales
+*.tmp
+errors.txt

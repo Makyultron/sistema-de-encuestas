@@ -1,0 +1,141 @@
+<div class="survey-create-container">
+  <div class="header-section">
+    <h1>Crear Nueva Encuesta</h1>
+    <p>Diseña tu encuesta agregando preguntas y opciones de respuesta</p>
+  </div>
+
+  <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" class="survey-form">
+    <!-- Survey Basic Info -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Información Básica</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Título de la encuesta</mat-label>
+          <input matInput formControlName="title" placeholder="Ej: Encuesta de satisfacción del cliente">
+          <mat-error *ngIf="surveyForm.get('title')?.invalid && surveyForm.get('title')?.touched">
+            {{ getErrorMessage('title') }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descripción (opcional)</mat-label>
+          <textarea matInput formControlName="description" rows="3" 
+                    placeholder="Describe el propósito de tu encuesta..."></textarea>
+        </mat-form-field>
+
+        <mat-slide-toggle formControlName="allowMultipleResponses" class="full-width">
+          Permitir múltiples respuestas por usuario
+        </mat-slide-toggle>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Questions Section -->
+    <mat-card class="form-section">
+      <mat-card-header>
+        <mat-card-title>Preguntas</mat-card-title>
+        <mat-card-subtitle>Agrega las preguntas que deseas incluir en tu encuesta</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div formArrayName="questions">
+          <div *ngFor="let question of questions.controls; let i = index" 
+               [formGroupName]="i" class="question-container">
+            
+            <div class="question-header">
+              <h3>Pregunta {{ i + 1 }}</h3>
+              <button mat-icon-button color="warn" type="button" 
+                      (click)="removeQuestion(i)" 
+                      [disabled]="questions.length === 1"
+                      matTooltip="Eliminar pregunta">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+
+            <div class="question-form">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Texto de la pregunta</mat-label>
+                <textarea matInput formControlName="text" rows="2" 
+                          placeholder="Escribe tu pregunta aquí..."></textarea>
+                <mat-error *ngIf="questions.at(i).get('text')?.invalid && questions.at(i).get('text')?.touched">
+                  {{ getErrorMessage('text', i) }}
+                </mat-error>
+              </mat-form-field>
+
+              <div class="question-config">
+                <mat-form-field appearance="outline">
+                  <mat-label>Tipo de pregunta</mat-label>
+                  <mat-select formControlName="type" (selectionChange)="onQuestionTypeChange(i)">
+                    <mat-option value="open">Pregunta abierta (texto libre)</mat-option>
+                    <mat-option value="single">Opción única (radio)</mat-option>
+                    <mat-option value="multiple">Opción múltiple (checkbox)</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-slide-toggle formControlName="isRequired">
+                  Pregunta obligatoria
+                </mat-slide-toggle>
+              </div>
+
+              <!-- Options for closed questions -->
+              <div *ngIf="isQuestionClosed(i)" class="options-section">
+                <h4>Opciones de respuesta</h4>
+                <div formArrayName="options">
+                  <div *ngFor="let option of getQuestionOptions(i).controls; let j = index" 
+                       [formGroupName]="j" class="option-item">
+                    <mat-form-field appearance="outline" class="option-input">
+                      <mat-label>Opción {{ j + 1 }}</mat-label>
+                      <input matInput formControlName="text" placeholder="Escribe la opción...">
+                      <mat-error *ngIf="getQuestionOptions(i).at(j).get('text')?.invalid && getQuestionOptions(i).at(j).get('text')?.touched">
+                        {{ getErrorMessage('text', i, j) }}
+                      </mat-error>
+                    </mat-form-field>
+                    
+                    <button mat-icon-button color="warn" type="button" 
+                            (click)="removeOption(i, j)" 
+                            [disabled]="getQuestionOptions(i).length <= 2"
+                            matTooltip="Eliminar opción">
+                      <mat-icon>remove_circle</mat-icon>
+                    </button>
+                  </div>
+                </div>
+
+                <button mat-stroked-button type="button" (click)="addOption(i)" class="add-option-btn">
+                  <mat-icon>add</mat-icon>
+                  Agregar opción
+                </button>
+              </div>
+
+              <!-- Info for open questions -->
+              <div *ngIf="!isQuestionClosed(i)" class="open-question-info">
+                <mat-icon class="info-icon">info</mat-icon>
+                <p>Esta es una pregunta abierta. Los usuarios podrán escribir su respuesta libremente.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-question-section">
+          <button mat-raised-button color="primary" type="button" (click)="addQuestion()">
+            <mat-icon>add</mat-icon>
+            Agregar pregunta
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button mat-button type="button" (click)="cancel()" [disabled]="isLoading">
+        Cancelar
+      </button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !surveyForm.valid">
+        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+        <span *ngIf="!isLoading">Crear Encuesta</span>
+        <span *ngIf="isLoading">Creando...</span>
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,22 @@
+# Backend NestJS - Archivos a ignorar
+
+# Dependencias
+node_modules/
+
+# Archivos de entorno (CRÍTICO)
+.env
+.env.*
+
+# Compilación
+dist/
+*.tsbuildinfo
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+
+# Archivos temporales
+*.tmp

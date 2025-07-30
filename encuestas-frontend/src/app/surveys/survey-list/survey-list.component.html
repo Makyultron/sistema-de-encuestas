@@ -1,0 +1,98 @@
+<div class="survey-list-container">
+  <div class="header-section">
+    <h1>Mis Encuestas</h1>
+    <p>Gestiona todas tus encuestas desde aquí</p>
+    
+    <button mat-raised-button color="primary" (click)="createSurvey()" class="create-button">
+      <mat-icon>add</mat-icon>
+      Crear Nueva Encuesta
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>Cargando encuestas...</p>
+  </div>
+
+  <!-- Surveys Grid -->
+  <div class="surveys-grid" *ngIf="!isLoading && (surveys$ | async) as surveys">
+    <div *ngIf="surveys.length === 0" class="empty-state">
+      <mat-icon class="empty-icon">poll</mat-icon>
+      <h3>No tienes encuestas aún</h3>
+      <p>Crea tu primera encuesta para comenzar a recopilar respuestas.</p>
+      <button mat-raised-button color="primary" (click)="createSurvey()">
+        <mat-icon>add</mat-icon>
+        Crear Primera Encuesta
+      </button>
+    </div>
+
+    <mat-card class="survey-card" *ngFor="let survey of surveys">
+      <mat-card-header>
+        <mat-card-title>{{ survey.title }}</mat-card-title>
+        <mat-card-subtitle>
+          <mat-chip [color]="getStatusColor(survey.isActive)" selected>
+            {{ getStatusText(survey.isActive) }}
+          </mat-chip>
+        </mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <p class="survey-description">{{ survey.description }}</p>
+        
+        <div class="survey-stats">
+          <div class="stat-item">
+            <mat-icon>question_answer</mat-icon>
+            <span>{{ survey.questions.length }} preguntas</span>
+          </div>
+          <div class="stat-item">
+            <mat-icon>people</mat-icon>
+            <span>{{ survey.responseCount || 0 }} respuestas</span>
+          </div>
+          <div class="stat-item" *ngIf="survey.createdAt">
+            <mat-icon>schedule</mat-icon>
+            <span>{{ survey.createdAt | date:'short' }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <div class="primary-actions">
+          <button mat-button (click)="viewResults(survey)">
+            <mat-icon>analytics</mat-icon>
+            Resultados
+          </button>
+          
+          <button mat-button (click)="shareSurvey(survey)" 
+                  [disabled]="!survey.isActive">
+            <mat-icon>share</mat-icon>
+            Compartir
+          </button>
+          
+          <button mat-button (click)="toggleSurveyStatus(survey)">
+            <mat-icon>{{ survey.isActive ? 'pause' : 'play_arrow' }}</mat-icon>
+            {{ survey.isActive ? 'Desactivar' : 'Activar' }}
+          </button>
+        </div>
+        
+        <div class="secondary-actions">
+          <button mat-icon-button [matMenuTriggerFor]="surveyMenu" 
+                  matTooltip="Más opciones">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+          
+          <mat-menu #surveyMenu="matMenu">
+            <button mat-menu-item (click)="editSurvey(survey)">
+              <mat-icon>edit</mat-icon>
+              Editar
+            </button>
+            <button mat-menu-item (click)="deleteSurvey(survey)" class="delete-action">
+              <mat-icon>delete</mat-icon>
+              Eliminar
+            </button>
+          </mat-menu>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+// Register component styles - extends login styles
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.auth-card {
+  max-width: 450px;
+  width: 100%;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.password-toggle {
+  cursor: pointer;
+}
+
+.submit-button {
+  margin-top: 16px;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.auth-links {
+  margin-top: 16px;
+  text-align: center;
+  
+  a {
+    color: inherit;
+    text-decoration: none;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

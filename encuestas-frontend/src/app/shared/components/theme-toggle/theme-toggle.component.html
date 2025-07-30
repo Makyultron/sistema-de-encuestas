@@ -1,0 +1,8 @@
+<div class="theme-toggle">
+  <mat-slide-toggle 
+    [checked]="isDarkTheme$ | async" 
+    (change)="toggleTheme()"
+    color="accent">
+    <mat-icon>{{ (isDarkTheme$ | async) ? 'dark_mode' : 'light_mode' }}</mat-icon>
+  </mat-slide-toggle>
+</div>

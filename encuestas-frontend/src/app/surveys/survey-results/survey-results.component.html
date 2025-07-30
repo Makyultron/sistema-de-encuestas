@@ -1,0 +1,138 @@
+<div class="survey-results-container">
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>Cargando resultados...</p>
+  </div>
+
+  <!-- Results Content -->
+  <div class="results-content" *ngIf="!isLoading && surveyResults">
+    <!-- Header Section -->
+    <div class="results-header">
+      <div class="survey-info">
+        <h1>{{ surveyResults.survey.title }}</h1>
+        <p class="survey-description">{{ surveyResults.survey.description }}</p>
+        
+        <div class="survey-stats">
+          <mat-chip color="primary" selected>
+            <mat-icon>people</mat-icon>
+            {{ getTotalResponses() }} respuestas
+          </mat-chip>
+          <mat-chip color="accent" selected>
+            <mat-icon>question_answer</mat-icon>
+            {{ surveyResults.survey.questions.length }} preguntas
+          </mat-chip>
+          <mat-chip [color]="surveyResults.survey.isActive ? 'primary' : 'warn'" selected>
+            {{ surveyResults.survey.isActive ? 'Activa' : 'Inactiva' }}
+          </mat-chip>
+        </div>
+      </div>
+      
+      <div class="action-buttons">
+        <button mat-raised-button color="primary" (click)="exportResults()">
+          <mat-icon>download</mat-icon>
+          Exportar CSV
+        </button>
+        <button mat-raised-button color="accent" (click)="shareSurvey()" 
+                [disabled]="!surveyResults.survey.isActive">
+          <mat-icon>share</mat-icon>
+          Compartir Encuesta
+        </button>
+      </div>
+    </div>
+
+    <!-- No Responses State -->
+    <div class="no-responses" *ngIf="getTotalResponses() === 0">
+      <mat-icon class="empty-icon">poll</mat-icon>
+      <h3>Aún no hay respuestas</h3>
+      <p>Comparte tu encuesta para comenzar a recopilar respuestas.</p>
+      <button mat-raised-button color="primary" (click)="shareSurvey()" 
+              [disabled]="!surveyResults.survey.isActive">
+        <mat-icon>share</mat-icon>
+        Compartir Encuesta
+      </button>
+    </div>
+
+    <!-- Results Grid -->
+    <div class="results-grid" *ngIf="getTotalResponses() > 0">
+      <div *ngFor="let questionIdStr of (surveyResults.statistics | keyvalue); let i = index" 
+           class="question-result">
+        <mat-card class="result-card">
+          <mat-card-header>
+            <mat-card-title>
+              Pregunta {{ i + 1 }}
+            </mat-card-title>
+            <mat-card-subtitle>
+              {{ getQuestionById(+questionIdStr.key)?.text }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          
+          <mat-card-content>
+            <div class="question-meta">
+              <div class="meta-item">
+                <span class="label">Tipo:</span>
+                <mat-chip [color]="getQuestionById(+questionIdStr.key)?.type === 'single' ? 'primary' : 'accent'" selected>
+                  {{ getQuestionById(+questionIdStr.key)?.type === 'single' ? 'Opción única' : 'Opción múltiple' }}
+                </mat-chip>
+              </div>
+              <div class="meta-item">
+                <span class="label">Respuestas:</span>
+                <span class="value">{{ questionIdStr.value.totalResponses }} / {{ getTotalResponses() }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="label">Tasa de respuesta:</span>
+                <span class="value">{{ getResponseRate(+questionIdStr.key) | number:'1.1-1' }}%</span>
+              </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="chart-container" *ngIf="chartData[+questionIdStr.key]">
+              <canvas baseChart
+                      [data]="chartData[+questionIdStr.key]"
+                      [options]="chartOptions"
+                      [type]="getChartType(getQuestionById(+questionIdStr.key)!)">
+              </canvas>
+            </div>
+
+            <!-- Statistics Table -->
+            <div class="stats-table">
+              <h4>Desglose de respuestas</h4>
+              <table mat-table [dataSource]="questionIdStr.value.answers | keyvalue" class="results-table">
+                <ng-container matColumnDef="option">
+                  <th mat-header-cell *matHeaderCellDef>Opción</th>
+                  <td mat-cell *matCellDef="let element">{{ element.key }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="count">
+                  <th mat-header-cell *matHeaderCellDef>Respuestas</th>
+                  <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="percentage">
+                  <th mat-header-cell *matHeaderCellDef>Porcentaje</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ questionIdStr.value.totalResponses > 0 ? 
+                       (element.value / questionIdStr.value.totalResponses * 100) : 0 | number:'1.1-1' }}%
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="['option', 'count', 'percentage']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['option', 'count', 'percentage'];"></tr>
+              </table>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="!isLoading && !surveyResults">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h2>Error al cargar los resultados</h2>
+    <p>No se pudieron cargar los resultados de la encuesta.</p>
+    <button mat-raised-button color="primary" (click)="loadSurveyResults()">
+      Reintentar
+    </button>
+  </div>
+</div>

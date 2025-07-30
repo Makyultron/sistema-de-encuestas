@@ -1,0 +1,120 @@
+<div class="survey-take-container">
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <mat-spinner></mat-spinner>
+    <p>Cargando encuesta...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-container" *ngIf="!isLoading && (!canRespond || errorMessage)">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <h2>No se puede acceder a la encuesta</h2>
+    <p>{{ errorMessage }}</p>
+    <button mat-raised-button color="primary" routerLink="/">
+      Volver al inicio
+    </button>
+  </div>
+
+  <!-- Survey Form -->
+  <div class="survey-content" *ngIf="!isLoading && canRespond && survey">
+    <div class="survey-header">
+      <h1>{{ survey.title }}</h1>
+      <p class="survey-description" *ngIf="survey.description">{{ survey.description }}</p>
+      <div class="survey-info">
+        <mat-chip color="primary" selected>
+          {{ survey.questions.length }} preguntas
+        </mat-chip>
+        <span class="anonymous-notice">
+          <mat-icon>security</mat-icon>
+          Respuesta anónima
+        </span>
+      </div>
+    </div>
+
+    <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" class="survey-form">
+      <div class="questions-container">
+        <div *ngFor="let question of survey.questions; let i = index" class="question-card">
+          <mat-card>
+            <mat-card-content>
+              <div class="question-header">
+                <h3>
+                  {{ i + 1 }}. {{ question.text }}
+                  <span class="required-indicator" *ngIf="isQuestionRequired(question)">*</span>
+                </h3>
+                <mat-chip *ngIf="question.type === 'open'" color="primary" selected>
+                  Pregunta abierta
+                </mat-chip>
+                <mat-chip *ngIf="question.type === 'single'" color="accent" selected>
+                  Selección única
+                </mat-chip>
+                <mat-chip *ngIf="question.type === 'multiple'" color="warn" selected>
+                  Selección múltiple
+                </mat-chip>
+              </div>
+
+              <!-- Open Question -->
+              <div *ngIf="question.type === 'open'" class="open-question">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Tu respuesta</mat-label>
+                  <textarea matInput 
+                           [formControlName]="'question_' + question.id"
+                           rows="4"
+                           placeholder="Escribe tu respuesta aquí..."></textarea>
+                  <mat-error *ngIf="getQuestionControl(question.id!).invalid && getQuestionControl(question.id!).touched">
+                    {{ getErrorMessage(question.id!) }}
+                  </mat-error>
+                </mat-form-field>
+              </div>
+
+              <!-- Single Choice Question -->
+              <div *ngIf="question.type === 'single'" class="single-choice-options">
+                <mat-radio-group [formControlName]="'question_' + question.id" class="radio-group">
+                  <mat-radio-button 
+                    *ngFor="let option of question.options; let j = index" 
+                    [value]="option.id"
+                    class="radio-option">
+                    {{ option.text }}
+                  </mat-radio-button>
+                </mat-radio-group>
+                <mat-error *ngIf="getQuestionControl(question.id!).invalid && getQuestionControl(question.id!).touched">
+                  {{ getErrorMessage(question.id!) }}
+                </mat-error>
+              </div>
+
+              <!-- Multiple Choice Question -->
+              <div *ngIf="question.type === 'multiple'" class="multiple-choice-options">
+                <div [formArrayName]="'question_' + question.id" class="checkbox-group">
+                  <mat-checkbox 
+                    *ngFor="let option of question.options; let j = index"
+                    [formControlName]="j"
+                    class="checkbox-option">
+                    {{ option.text }}
+                  </mat-checkbox>
+                </div>
+                <mat-error *ngIf="getCheckboxArray(question.id!).invalid && getCheckboxArray(question.id!).touched">
+                  {{ getErrorMessage(question.id!) }}
+                </mat-error>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-raised-button color="primary" type="submit" 
+                [disabled]="isSubmitting || !surveyForm.valid"
+                class="submit-button">
+          <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+          <span *ngIf="!isSubmitting">Enviar Respuestas</span>
+          <span *ngIf="isSubmitting">Enviando...</span>
+        </button>
+        
+        <div class="form-info">
+          <mat-icon>info</mat-icon>
+          <span>Tus respuestas son completamente anónimas y no pueden ser rastreadas hasta ti.</span>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
