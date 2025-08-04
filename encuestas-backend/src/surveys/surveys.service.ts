@@ -100,12 +100,69 @@ export class SurveysService {
   }
 
   async update(id: number, updateSurveyDto: UpdateSurveyDto, creatorId: number): Promise<Survey> {
-    const survey = await this.findOne(id, creatorId);
-    
-    Object.assign(survey, updateSurveyDto);
-    await this.surveyRepository.save(survey);
+    try {
+      console.log(' Iniciando actualización de encuesta:', id);
+      console.log(' Datos recibidos:', JSON.stringify(updateSurveyDto, null, 2));
+      
+      const survey = await this.findOne(id, creatorId);
+      console.log(' Encuesta encontrada:', survey.title);
+      
+      // Actualizar campos básicos de la encuesta
+      survey.title = updateSurveyDto.title || survey.title;
+      survey.description = updateSurveyDto.description || survey.description;
+      survey.allowMultipleResponses = updateSurveyDto.allowMultipleResponses ?? survey.allowMultipleResponses;
+      survey.isActive = updateSurveyDto.isActive ?? survey.isActive;
+      
+      // Guardar cambios básicos
+      console.log(' Guardando cambios básicos...');
+      await this.surveyRepository.save(survey);
+      
+      // Si hay preguntas para actualizar, manejar las relaciones
+      if (updateSurveyDto.questions) {
+        console.log(' Actualizando preguntas...');
+        
+        // 1. Eliminar todas las preguntas existentes (cascade eliminará las opciones)
+        if (survey.questions && survey.questions.length > 0) {
+          console.log(' Eliminando preguntas existentes:', survey.questions.length);
+          await this.questionRepository.remove(survey.questions);
+        }
+        
+        // 2. Crear nuevas preguntas
+        console.log(' Creando nuevas preguntas:', updateSurveyDto.questions.length);
+        for (const [index, questionDto] of updateSurveyDto.questions.entries()) {
+          const question = new Question();
+          question.text = questionDto.text;
+          question.type = questionDto.type.toUpperCase() as any;
+          question.isRequired = questionDto.isRequired || false;
+          question.order = questionDto.order || index;
+          question.surveyId = survey.id;
+          
+          const savedQuestion = await this.questionRepository.save(question);
+          console.log(' Pregunta creada:', savedQuestion.id, savedQuestion.text);
+          
+          // 3. Crear opciones si existen
+          if (questionDto.options && questionDto.options.length > 0) {
+            console.log(' Creando opciones para pregunta:', savedQuestion.id);
+            for (const [optionIndex, optionDto] of questionDto.options.entries()) {
+              const option = new QuestionOption();
+              option.text = optionDto.text;
+              option.order = optionDto.order || optionIndex;
+              option.questionId = savedQuestion.id;
+              
+              await this.questionOptionRepository.save(option);
+              console.log(' Opción creada:', option.text);
+            }
+          }
+        }
+      }
 
-    return this.findOne(id, creatorId);
+      console.log(' Actualización completada exitosamente');
+      // Retornar la encuesta actualizada con todas las relaciones
+      return this.findOne(id, creatorId);
+    } catch (error) {
+      console.error(' Error en actualización de encuesta:', error);
+      throw new BadRequestException(`Error al actualizar encuesta: ${error.message}`);
+    }
   }
 
   async remove(id: number, creatorId: number): Promise<void> {

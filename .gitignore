@@ -47,3 +47,4 @@ coverage/
 # Archivos específicos del proyecto
 errors.txt
 cleanup.bat
+test-auth.bat

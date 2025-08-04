@@ -1,7 +1,7 @@
 <div class="survey-create-container">
   <div class="header-section">
-    <h1>Crear Nueva Encuesta</h1>
-    <p>Diseña tu encuesta agregando preguntas y opciones de respuesta</p>
+    <h1>{{ pageTitle }}</h1>
+    <p>{{ isEditMode ? 'Modifica tu encuesta existente' : 'Diseña tu encuesta agregando preguntas y opciones de respuesta' }}</p>
   </div>
 
   <form [formGroup]="surveyForm" (ngSubmit)="onSubmit()" class="survey-form">
@@ -133,8 +133,8 @@
       </button>
       <button mat-raised-button color="primary" type="submit" [disabled]="isLoading || !surveyForm.valid">
         <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-        <span *ngIf="!isLoading">Crear Encuesta</span>
-        <span *ngIf="isLoading">Creando...</span>
+        <span *ngIf="!isLoading">{{ isEditMode ? 'Actualizar Encuesta' : 'Crear Encuesta' }}</span>
+        <span *ngIf="isLoading">{{ isEditMode ? 'Actualizando...' : 'Creando...' }}</span>
       </button>
     </div>
   </form>

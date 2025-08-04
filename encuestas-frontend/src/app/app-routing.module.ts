@@ -20,6 +20,7 @@ const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   { path: 'surveys', component: SurveyListComponent, canActivate: [AuthGuard] },
   { path: 'surveys/create', component: SurveyCreateComponent, canActivate: [AuthGuard] },
+  { path: 'surveys/edit/:id', component: SurveyCreateComponent, canActivate: [AuthGuard] }, // Reutilizar componente de creación para edición
   { path: 'surveys/:id/results', component: SurveyResultsComponent, canActivate: [AuthGuard] },
   
   // Fallback

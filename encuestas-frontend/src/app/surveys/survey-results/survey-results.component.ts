@@ -137,53 +137,6 @@ export class SurveyResultsComponent implements OnInit {
   exportResults(): void {
     if (!this.surveyResults) return;
 
-    const csvData = this.generateCSVData();
-    const blob = new Blob([csvData], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `encuesta-${this.surveyResults.survey?.title || 'resultados'}.csv`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-  }
-
-  private generateCSVData(): string {
-    if (!this.surveyResults) return '';
-
-    let csv = 'Pregunta,Tipo,Respuesta,Cantidad,Porcentaje\n';
-    
-    this.surveyResults.survey.questions.forEach(question => {
-      if (question.id) {
-        const stats = this.surveyResults!.statistics[question.id];
-        
-        if (question.type === 'open') {
-          // For open questions, list all text responses
-          if (stats?.textResponses) {
-            stats.textResponses.forEach((response: string, index: number) => {
-              csv += `"${question.text}","Abierta","${response.replace(/"/g, '""')}",1,\n`;
-            });
-          }
-        } else if (question.options && stats?.options) {
-          // For closed questions, show option statistics
-          const total = stats.totalResponses || 0;
-          
-          question.options.forEach(option => {
-            const optionStats = stats.options.find((opt: any) => opt.optionId === option.id);
-            const count = optionStats?.count || 0;
-            const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
-            
-            csv += `"${question.text}","${question.type === 'single' ? 'Única' : 'Múltiple'}","${option.text}",${count},${percentage}%\n`;
-          });
-        }
-      }
-    });
-
-    return csv;
-  }
-
-  exportToCSV(): void {
-    if (!this.surveyResults) return;
-
     const csvContent = this.generateCSVData();
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -202,6 +155,44 @@ export class SurveyResultsComponent implements OnInit {
         panelClass: ['success-snackbar']
       });
     }
+  }
+
+  private generateCSVData(): string {
+    if (!this.surveyResults) return '';
+
+    let csv = 'Pregunta,Tipo,Respuesta,Cantidad,Porcentaje\n';
+    
+    this.surveyResults.survey.questions.forEach(question => {
+      if (question.id) {
+        const stats = this.surveyResults!.statistics[question.id];
+        
+        if (question.type === 'open') {
+          // Para preguntas abiertas, listar todas las respuestas de texto
+          if (stats?.answers && Array.isArray(stats.answers)) {
+            stats.answers.forEach((response: string, index: number) => {
+              if (response && response.trim()) {
+                csv += `"${question.text}","Abierta","${response.replace(/"/g, '""')}",1,\n`;
+              }
+            });
+          }
+        } else {
+          // Para preguntas cerradas, mostrar estadísticas por opción
+          if (stats?.answers && typeof stats.answers === 'object') {
+            const total = stats.totalResponses || 0;
+            
+            // Iterar sobre las respuestas agrupadas por texto de opción
+            Object.keys(stats.answers).forEach(optionText => {
+              const count = stats.answers[optionText] || 0;
+              const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : '0';
+              
+              csv += `"${question.text}","${question.type === 'single' ? 'Única' : 'Múltiple'}","${optionText}",${count},${percentage}%\n`;
+            });
+          }
+        }
+      }
+    });
+
+    return csv;
   }
 
   goBack(): void {
@@ -247,7 +238,7 @@ export class SurveyResultsComponent implements OnInit {
     if (!this.surveyResults) return [];
     
     const stats = this.surveyResults.statistics[questionId];
-    return stats?.textResponses || [];
+    return stats?.answers || [];
   }
 
   formatDate(date: Date | string | undefined): string {

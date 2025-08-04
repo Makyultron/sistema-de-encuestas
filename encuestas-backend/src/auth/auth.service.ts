@@ -11,25 +11,33 @@ export class AuthService {
   ) {}
 
   async register(email: string, password: string, name: string): Promise<any> {
+    console.log('📝 Iniciando registro para:', email);
+    
     // 1. Verificar si el usuario ya existe
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
+      console.log('❌ Email ya registrado:', email);
       throw new BadRequestException('El correo electrónico ya está registrado.');
     }
 
-    // 2. Hashear la contraseña
-    const hashedPassword = await bcrypt.hash(password, 10); // '10' es el salt rounds (costo computacional)
-
-    // 3. Crear el usuario en la base de datos
-    const user = await this.usersService.create({ email, password: hashedPassword, name });
-
-    // Opcional: Generar token de inmediato después del registro
-    // const payload = { email: user.email, sub: user.id };
-    // return {
-    //   access_token: this.jwtService.sign(payload),
-    //   user: { id: user.id, email: user.email, name: user.name },
-    // };
-    return { message: 'Usuario registrado exitosamente', user: { id: user.id, email: user.email, name: user.name } };
+    try {
+      // 2. Hashear la contraseña con bcryptjs
+      console.log('🔐 Hasheando contraseña...');
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      // 3. Crear el usuario en la base de datos
+      console.log('💾 Creando usuario en base de datos...');
+      const user = await this.usersService.create({ email, password: hashedPassword, name });
+      
+      console.log('✅ Usuario registrado exitosamente:', user.email);
+      return { 
+        message: 'Usuario registrado exitosamente', 
+        user: { id: user.id, email: user.email, name: user.name } 
+      };
+    } catch (error) {
+      console.error('🚨 Error en registro:', error);
+      throw new BadRequestException('Error al registrar usuario');
+    }
   }
 
   async validateUser(email: string, pass: string): Promise<any> {
